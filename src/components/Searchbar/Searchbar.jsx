@@ -1,6 +1,7 @@
 import { Component } from 'react';
 import styles from './Searchbar.module.css';
 import PropTypes from 'prop-types';
+import { AiOutlineSearch } from 'react-icons/ai';
 
 export class Searchbar extends Component {
   state = {
@@ -16,7 +17,8 @@ export class Searchbar extends Component {
       <header className={styles.searchbar}>
         <form className={styles.form} onClick={this.props.getImages}>
           <button type="submit" className={styles.button}>
-            <span className={styles.button_label}>Search</span>
+            {/* <span className={styles.button_label}>Search</span> */}
+            <AiOutlineSearch size="30px" />
           </button>
 
           <input
