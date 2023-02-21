@@ -9,6 +9,7 @@ export class App extends Component {
   state = {
     images: [],
     page: 0,
+    totalHits: 0,
     query: '',
     isLoader: false,
   };
@@ -21,13 +22,14 @@ export class App extends Component {
       this.setState({ isLoader: true });
 
       getImagesPixabay(this.state.page, this.state.query)
-        .then(data =>
+        .then(data => {
           this.setState(prevState => {
             return {
               images: [...prevState.images, ...data.data.hits],
+              totalHits: [data.data.totalHits],
             };
-          })
-        )
+          });
+        })
         .catch(err => console.log(err))
         .finally(() => this.setState({ isLoader: false }));
     }
@@ -60,7 +62,9 @@ export class App extends Component {
         {this.state.images.length > 0 && (
           <>
             <ImageGallery images={this.state.images} />
-            <Button text="Load more" handleClick={this.loadMoreImages} />
+            {this.state.images.length !== this.state.totalHits[0] && (
+              <Button text="Load more" handleClick={this.loadMoreImages} />
+            )}
           </>
         )}
       </div>
