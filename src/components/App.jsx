@@ -1,4 +1,3 @@
-import { Component } from 'react';
 import getImagesPixabay from 'Servises/imagesAPI';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Searchbar } from './Searchbar/Searchbar';
