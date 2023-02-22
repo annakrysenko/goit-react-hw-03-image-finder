@@ -7,90 +7,72 @@ import styles from './App.module.css';
 import { Loader } from './Loader/Loader';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useState, useEffect } from 'react';
 
-export class App extends Component {
-  state = {
-    images: [],
-    page: 0,
-    totalHits: 0,
-    query: '',
-    isLoader: false,
-  };
+export const App = () => {
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(0);
+  const [totalHits, setTotalHits] = useState(0);
+  const [query, setQuery] = useState('');
+  const [isLoader, setIsLoader] = useState(false);
 
-  componentDidUpdate(_, prevState) {
-    if (
-      prevState.page !== this.state.page ||
-      prevState.query !== this.state.query
-    ) {
-      this.setState({ isLoader: true });
+  useEffect(() => {
+    setIsLoader(true);
 
-      getImagesPixabay(this.state.page, this.state.query)
-        .then(data => {
-          if (data.data.totalHits === 0) {
-            this.notifyErr("Sorry! Can't find any pictures");
-          }
-          this.setState(prevState => {
-            return {
-              images: [...prevState.images, ...data.data.hits],
-              totalHits: [data.data.totalHits],
-            };
-          });
-        })
-        .catch(err => console.log(err))
-        .finally(() => this.setState({ isLoader: false }));
+    getImagesPixabay(page, query)
+      .then(data => {
+        if (data.data.totalHits === 0) {
+          notifyErr("Sorry! Can't find any pictures");
+        }
+        setImages(prevState => [...prevState, ...data.data.hits]);
+        setTotalHits(prevState => [data.data.totalHits]);
+      })
+      .catch(err => console.log(err))
+      .finally(() => setIsLoader(true));
+  }, [query, page]);
+
+  useEffect(() => {
+    if (images.length === totalHits[0] && totalHits > 0) {
+      notifyLast('The last page');
     }
+  }, [images, totalHits]);
 
-    if (
-      this.state.images.length === this.state.totalHits[0] &&
-      this.state.totalHits > 0
-    ) {
-      console.log(this.state.images.length, this.state.totalHits[0]);
-      this.notifyLast('The last page');
-    }
-  }
+  const notifyErr = text => toast.error(text);
+  const notifyLast = text => toast.info(text);
+  const notifySuccess = text => toast.success(text);
 
-  notifyErr = text => toast.error(text);
-  notifyLast = text => toast.info(text);
-  notifySuccess = text => toast.success(text);
-
-  getImages = ev => {
+  const getImages = ev => {
     ev.preventDefault();
     if (ev.target.nodeName === 'BUTTON') {
       const queryInput = ev.currentTarget.searchInput.value.trim();
-      this.setState({
-        query: queryInput,
-        isShowGallery: true,
-        page: 1,
-        images: [],
-      });
+
+      setImages([]);
+      setPage(1);
+      setQuery(queryInput);
     }
   };
 
-  loadMoreImages = () => {
-    this.setState(prevState => {
-      return { page: prevState.page + 1 };
-    });
+  const loadMoreImages = () => {
+    setPage(prevState => prevState + 1);
   };
 
-  render() {
-    return (
-      <div className={styles.app}>
-        <Searchbar getImages={this.getImages} />
-        {this.state.isLoader && <Loader />}
-        {this.state.images.length > 0 && (
-          <>
-            <ImageGallery
-              images={this.state.images}
-              notifySuccess={this.notifySuccess}
-              totalHits={this.state.totalHits}
-            />
-            {this.state.images.length !== this.state.totalHits[0] && (
-              <Button text="Load more" handleClick={this.loadMoreImages} />
-            )}
-          </>
-        )}
-        <ToastContainer autoClose={3000} theme="colored" />
-      </div>
-    );
-  }
-}
+  return (
+    <div className={styles.app}>
+      <Searchbar getImages={getImages} />
+      {isLoader && <Loader />}
+      {images.length > 0 && (
+        <>
+          <ImageGallery
+            images={images}
+            notifySuccess={notifySuccess}
+            totalHits={totalHits}
+          />
+          {images.length !== totalHits[0] && (
+            <Button text="Load more" handleClick={loadMoreImages} />
+          )}
+        </>
+      )}
+      <ToastContainer autoClose={3000} theme="colored" />
+    </div>
+  );
+};
