@@ -16,6 +16,9 @@ export const App = () => {
   const [isLoader, setIsLoader] = useState(false);
 
   useEffect(() => {
+    if (!query) {
+      return;
+    }
     setIsLoader(true);
 
     getImagesPixabay(page, query)
