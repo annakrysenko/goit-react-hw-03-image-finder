@@ -8,40 +8,41 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useState, useEffect } from 'react';
 
+const per_page = 12;
+
 export const App = () => {
   const [images, setImages] = useState([]);
   const [page, setPage] = useState(0);
-  const [totalHits, setTotalHits] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [query, setQuery] = useState('');
   const [isLoader, setIsLoader] = useState(false);
 
   useEffect(() => {
-    if (!query) {
+    if (query === '') {
       return;
     }
-    setIsLoader(true);
+    (async () => {
+      setIsLoader(true);
+      try {
+        const { data } = await getImagesPixabay(page, query, per_page);
 
-    getImagesPixabay(page, query)
-      .then(data => {
-        if (data.data.totalHits === 0) {
-          notifyErr("Sorry! Can't find any pictures");
+        if (!data.totalHits) {
+          setTotalPages(0);
+          return toast.error("Sorry! Can't find any pictures");
         }
-        setImages(prevState => [...prevState, ...data.data.hits]);
-        setTotalHits(prevState => [data.data.totalHits]);
-      })
-      .catch(err => console.log(err))
-      .finally(() => setIsLoader(true));
+
+        setImages(prevState => [...prevState, ...data.hits]);
+        setTotalPages(Math.ceil(data.totalHits / per_page));
+
+        page === 1 && toast.success(`We find ${data.totalHits} pictures`);
+        Math.ceil(data.totalHits / per_page) === page &&
+          toast.info('The last page');
+      } catch (err) {
+        console.log(err.massage);
+      }
+      setIsLoader(false);
+    })();
   }, [query, page]);
-
-  useEffect(() => {
-    if (images.length === totalHits[0] && totalHits > 0) {
-      notifyLast('The last page');
-    }
-  }, [images, totalHits]);
-
-  const notifyErr = text => toast.error(text);
-  const notifyLast = text => toast.info(text);
-  const notifySuccess = text => toast.success(text);
 
   const getImages = ev => {
     ev.preventDefault();
@@ -61,19 +62,15 @@ export const App = () => {
   return (
     <div className={styles.app}>
       <Searchbar getImages={getImages} />
-      {isLoader && <Loader />}
-      {images.length > 0 && (
-        <>
-          <ImageGallery
-            images={images}
-            notifySuccess={notifySuccess}
-            totalHits={totalHits}
-          />
-          {images.length !== totalHits[0] && (
-            <Button text="Load more" handleClick={loadMoreImages} />
-          )}
-        </>
+
+      {!totalPages && query && <p className={styles.err}>Error! Try again</p>}
+
+      <ImageGallery images={images} />
+      {totalPages > page && (
+        <Button text="Load more" handleClick={loadMoreImages} />
       )}
+
+      {isLoader && <Loader />}
       <ToastContainer autoClose={3000} theme="colored" />
     </div>
   );

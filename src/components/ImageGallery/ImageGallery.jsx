@@ -1,14 +1,9 @@
 import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
 import styles from './ImageGallery.module.css';
 import PropTypes from 'prop-types';
-import { useEffect } from 'react';
+// import { useRef, useEffect } from 'react';
 
-export const ImageGallery = ({ notifySuccess, images, totalHits }) => {
-  useEffect(() => {
-    notifySuccess(`We find ${totalHits} pictures`);
-  }, []);
-  //  ??
-
+export const ImageGallery = ({ images }) => {
   return (
     <>
       <ul className={styles.gallery}>
@@ -28,5 +23,4 @@ export const ImageGallery = ({ notifySuccess, images, totalHits }) => {
 
 ImageGallery.propTypes = {
   images: PropTypes.array.isRequired,
-  notifySuccess: PropTypes.func.isRequired,
 };
