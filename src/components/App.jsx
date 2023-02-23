@@ -27,6 +27,7 @@ export const App = () => {
         const { data } = await getImagesPixabay(page, query, per_page);
 
         if (!data.totalHits) {
+          setIsLoader(false);
           setTotalPages(0);
           return toast.error("Sorry! Can't find any pictures");
         }
